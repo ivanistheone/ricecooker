@@ -8,19 +8,18 @@ import shutil
 import tempfile
 import zipfile
 from subprocess import CalledProcessError
-import youtube_dl
-from le_utils.constants import content_kinds,file_formats, format_presets, exercises, languages
-from .. import config
-from ..exceptions import UnknownFileTypeError
-from cachecontrol.caches.file_cache import FileCache
-from le_utils.constants import file_formats, format_presets, exercises
-from pressurecooker.encodings import get_base64_encoding, write_base64_to_file
-from pressurecooker.images import create_tiled_image
-from pressurecooker.videos import extract_thumbnail_from_video, guess_video_preset_by_resolution, compress_video
+
 from requests.exceptions import MissingSchema, HTTPError, ConnectionError, InvalidURL, InvalidSchema
+import youtube_dl
 
 from .. import config
 from ..exceptions import UnknownFileTypeError
+from cachecontrol.caches.file_cache import FileCache
+from le_utils.constants import file_formats, format_presets, exercises, languages
+from pressurecooker.encodings import get_base64_encoding, write_base64_to_file
+from pressurecooker.images import create_tiled_image
+from pressurecooker.videos import extract_thumbnail_from_video, guess_video_preset_by_resolution, compress_video
+
 
 # Cache for filenames
 FILECACHE = FileCache(config.FILECACHE_DIRECTORY, forever=True)
@@ -228,11 +227,11 @@ class File(object):
         if filename:
             if os.path.isfile(config.get_storage_path(filename)):
                 return {
-                    'size' : os.path.getsize(config.get_storage_path(filename)),
-                    'preset' : self.get_preset(),
-                    'filename' : filename,
-                    'original_filename' : self.original_filename,
-                    'language' : self.language,
+                    'size': os.path.getsize(config.get_storage_path(filename)),
+                    'preset': self.get_preset(),
+                    'filename': filename,
+                    'original_filename': self.original_filename,
+                    'language': self.language,
                     'source_url': self.source_url,
                 }
             else:
@@ -376,9 +375,13 @@ class VideoFile(DownloadFile):
         super(VideoFile, self).__init__(path, **kwargs)
 
     def get_preset(self):
-        return self.preset or guess_video_preset_by_resolution(config.get_storage_path(self.filename))
+        config.LOGGER.info('In get_preset for VideoFile ' + str(self.path))
+        video_path = config.get_storage_path(self.filename)
+        guessed_preset = guess_video_preset_by_resolution(video_path)
+        return self.preset or guessed_preset
 
     def process_file(self):
+        config.LOGGER.info('In process_file for VideoFile ' + str(self.path))
         try:
             # Get copy of video before compression (if specified)
             self.filename = super(VideoFile, self).process_file()
@@ -394,6 +397,7 @@ class VideoFile(DownloadFile):
 class WebVideoFile(File):
     is_primary = True
     # In future, look into postprocessors and progress_hooks
+
     def __init__(self, web_url, download_settings=None, high_resolution=True, maxheight=None, **kwargs):
         self.web_url = web_url
         self.download_settings = download_settings or {}

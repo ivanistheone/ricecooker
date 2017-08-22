@@ -4,7 +4,6 @@ import json
 import uuid
 
 from le_utils.constants import content_kinds, exercises, file_formats, format_presets, languages
-
 from ricecooker.classes.files import NodeFile
 from .licenses import License
 from .. import config, __version__
@@ -262,7 +261,7 @@ class ChannelNode(Node):
             "id": self.get_node_id().hex,
             "name": self.title,
             "thumbnail": self.thumbnail.filename if self.thumbnail else None,
-            "language" : self.language,
+            "language": self.language,
             "description": self.description or "",
             "license": self.license,
             "source_domain": self.source_domain,
@@ -305,7 +304,7 @@ class TreeNode(Node):
         self.source_id = source_id
         self.author = author or ""
         self.domain_ns = domain_ns
-        self.questions = self.questions if hasattr(self, 'questions') else [] # Needed for to_dict method
+        self.questions = self.questions if hasattr(self, 'questions') else []  # Needed for to_dict method
         self.extra_fields = extra_fields or {}
 
         super(TreeNode, self).__init__(title, **kwargs)
@@ -326,7 +325,6 @@ class TreeNode(Node):
             self.node_id = uuid.uuid5(self.parent.get_node_id(), self.get_content_id().hex)
         return self.node_id
 
-
     def truncate_fields(self):
         if self.author and len(self.author) > config.MAX_AUTHOR_LENGTH:
             config.print_truncate("author", self.source_id, self.author, kind=self.kind)
@@ -336,7 +334,6 @@ class TreeNode(Node):
 
         super(TreeNode, self).truncate_fields()
 
-
     def to_dict(self):
         """ to_dict: puts data in format CC expects
             Args: None
@@ -344,14 +341,14 @@ class TreeNode(Node):
         """
         return {
             "title": self.title,
-            "language" : self.language,
+            "language": self.language,
             "description": self.description,
             "node_id": self.get_node_id().hex,
             "content_id": self.get_content_id().hex,
             "source_domain": self.domain_ns.hex,
             "source_id": self.source_id,
             "author": self.author,
-            "files" : [f.to_dict() for f in self.files if f and f.filename], # Filter out failed downloads
+            "files": [f.to_dict() for f in self.files if f and f.filename],  # Filter out failed downloads
             "kind": self.kind,
             "license": None,
             "license_description": None,
@@ -365,7 +362,7 @@ class TreeNode(Node):
             Args: None
             Returns: boolean indicating if content node is valid
         """
-        assert isinstance(self.author, str) , "Assumption Failed: Author is not a string"
+        assert isinstance(self.author, str), "Assumption Failed: Author is not a string"
         assert isinstance(self.files, list), "Assumption Failed: Files is not a list"
         assert isinstance(self.questions, list), "Assumption Failed: Questions is not a list"
         assert isinstance(self.extra_fields, dict), "Assumption Failed: Extra fields is not a dict"
@@ -455,14 +452,14 @@ class ContentNode(TreeNode):
         """
         return {
             "title": self.title,
-            "language" : self.language,
+            "language": self.language,
             "description": self.description,
             "node_id": self.get_node_id().hex,
             "content_id": self.get_content_id().hex,
             "source_domain": self.domain_ns.hex,
             "source_id": self.source_id,
             "author": self.author,
-            "files" : [f.to_dict() for f in filter(lambda x: x and x.filename, self.files)], # Filter out failed downloads
+            "files": [f.to_dict() for f in filter(lambda x: x and x.filename, self.files)],  # Filter out failed downloads
             "kind": self.kind,
             "license": self.license.license_id,
             "license_description": self.license.description,
