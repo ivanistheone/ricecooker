@@ -18,3 +18,19 @@ in each chef script and then call them on the command line:
 
 
 See also the jupyter notebooks in [docs/tutorial/][../docs/turorial].
+
+
+
+
+
+Perseus testing chef
+--------------------
+
+Assuming you have a studio instance running on http://127.0.0.1:8000
+
+    cd examples
+    ./perseuschef.py -v --reset --publish \
+        --token='26a51f88ae50f4562c075f8031316eff34c58eb8' \
+        --perseusfile="/some/local/path/to/exerciseid.perseus"
+
+If Studio is running on a different host/port you must edit `perseuschef.py`
