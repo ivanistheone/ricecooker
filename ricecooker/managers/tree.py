@@ -135,6 +135,7 @@ class ChannelManager:
         config.LOGGER.info("\tPreparing fields...")
         self.truncate_fields(self.channel)
 
+        self.bulk_add_nodes(root, self.channel)
         self.add_nodes(root, self.channel)
         if self.check_failed(print_warning=False):
             failed = self.failed_node_builds
@@ -201,6 +202,43 @@ class ChannelManager:
         new_channel = json.loads(response._content.decode("utf-8"))
 
         return new_channel['root'], new_channel['channel_id']
+
+    def bulk_add_nodes(self, root_id, channel):
+        """
+        Add the children of `current_node` (a TreeNode object) as children of
+        `current_node_json` (a studio json dict).
+        Builds the entire `studio_tree.json` file and save it to disk.
+        """
+        
+        def add_children_to_current_node_json(current_node, current_node_json):
+            if not current_node.children:
+                return
+            for child in current_node.children:
+                # failed = [f for f in child.files if f.is_primary and (not f.filename or self.failed_uploads.get(f.filename))]
+                # ... TODO
+                child_json = child.to_dict()
+                child_json['children'] = []
+                current_node_json['children'].append(child_json)
+                add_children_to_current_node_json(child, child_json)
+
+        studio_json = channel.to_dict()
+        studio_json['children'] = []
+        add_children_to_current_node_json(channel, studio_json)
+
+        studio_json_path = 'chefdata/trees/studio_json_tree.json'
+        with open(studio_json_path, 'w') as jsonf:
+            json.dump(studio_json, jsonf, ensure_ascii=False, indent=2)
+        print(' ')
+        print('1. Saved studio json tree to', studio_json_path)
+        print('2. Compressing ....', studio_json_path)
+        print('3. Bulk uploading', studio_json_path.replace('.json', '.json.gz'), 'to Studio /api/internal/bulk_add_nodes')
+        print('4.     checking task status... ')
+        print('       checking task status... ')
+        print('       checking task status... ')
+        print('5. Done. (continuing as ricecooker process as usual)')
+        print(' ')
+
+
 
     def add_nodes(self, root_id, current_node, indent=1):
         """ add_nodes: adds processed nodes to tree
